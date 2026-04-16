@@ -2,7 +2,8 @@ terraform {
   required_providers {
     docker = {
       source  = "kreuzwerker/docker"
-      version = "2.15.0"
+      # Actualizamos a una versión más reciente del proveedor
+      version = "~> 3.0.1"
     }
   }
 }
@@ -18,27 +19,28 @@ resource "docker_network" "app_network" {
 
 # Imágenes
 resource "docker_image" "postgres_img" {
-  name = "postgres:15-alpine"
+  name         = "postgres:15-alpine"
+  keep_locally = false
 }
 
 resource "docker_image" "api_img" {
   name = "api_image"
   build {
-    path = "./api"
+    context = "./api" # Cambiado 'path' por 'context' (estándar en v3.x)
   }
 }
 
 resource "docker_image" "web_img" {
   name = "web_image"
   build {
-    path = "./web"
+    context = "./web" # Cambiado 'path' por 'context' (estándar en v3.x)
   }
 }
 
 # Contenedores
 resource "docker_container" "bd_cont" {
   name  = "bd"
-  image = docker_image.postgres_img.latest
+  image = docker_image.postgres_img.image_id # En v3.x se usa image_id o name
   networks_advanced { name = docker_network.app_network.name }
   ports {
     internal = 5432
@@ -48,7 +50,7 @@ resource "docker_container" "bd_cont" {
 
 resource "docker_container" "api_cont" {
   name  = "api01"
-  image = docker_image.api_img.latest
+  image = docker_image.api_img.image_id
   networks_advanced { name = docker_network.app_network.name }
   ports {
     internal = 3000
@@ -58,7 +60,7 @@ resource "docker_container" "api_cont" {
 
 resource "docker_container" "web_cont" {
   name  = "web-LOCAL-01"
-  image = docker_image.web_img.latest
+  image = docker_image.web_img.image_id
   networks_advanced { name = docker_network.app_network.name }
   ports {
     internal = 80

@@ -1,8 +1,12 @@
 # Estamos usando Java 17 como base para practicar 
-FROM openjdk:17-jdk-slim
+FROM node:18-alpine
 
 # Directorio de trabajo dentro del contenedor
 WORKDIR /app
 
+COPY index.js .
+
+EXPOSE 3000
+
 # Por ahora solo mantenemos el contenedor vivo
-CMD ["sleep", "infinity"]
+CMD ["node", "index.js"]

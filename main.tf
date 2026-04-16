@@ -2,21 +2,40 @@ terraform {
   required_providers {
     docker = {
       source  = "kreuzwerker/docker"
-      version = "2.25.0" 
+      version = "2.15.0"
     }
   }
 }
 
-provider "docker" {}
+provider "docker" {
+  host = "unix:///var/run/docker.sock"
+}
 
+# Red
 resource "docker_network" "app_network" {
   name = "NETWORK"
 }
 
+# Imágenes
 resource "docker_image" "postgres_img" {
   name = "postgres:15-alpine"
 }
 
+resource "docker_image" "api_img" {
+  name = "api_image"
+  build {
+    path = "./api"
+  }
+}
+
+resource "docker_image" "web_img" {
+  name = "web_image"
+  build {
+    path = "./web"
+  }
+}
+
+# Contenedores
 resource "docker_container" "bd_cont" {
   name  = "bd"
   image = docker_image.postgres_img.latest
@@ -27,11 +46,6 @@ resource "docker_container" "bd_cont" {
   }
 }
 
-resource "docker_image" "api_img" {
-  name = "api_image"
-  build { path = "./api" }
-}
-
 resource "docker_container" "api_cont" {
   name  = "api01"
   image = docker_image.api_img.latest
@@ -40,11 +54,6 @@ resource "docker_container" "api_cont" {
     internal = 3000
     external = 4002
   }
-}
-
-resource "docker_image" "web_img" {
-  name = "web_image"
-  build { path = "./web" }
 }
 
 resource "docker_container" "web_cont" {
